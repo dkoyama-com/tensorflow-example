@@ -1,3 +1,4 @@
+from os import write
 import tensorflow as tf
 from absl import app
 from absl import flags
@@ -49,6 +50,7 @@ def main(argv):
 #               plt.imsave('tmp.png', img)
 
             tf.keras.backend.set_image_data_format('channels_last')
+            tf.keras.backend.set_learning_phase(1)
 
             num_class = cfg['dataset']['num_class']
             height = cfg['dataset']['height']
@@ -118,12 +120,26 @@ def main(argv):
                 metrics=metrics
             )
 
+            if not os.path.exists(cfg['save']['dir_path']):
+                os.makedirs(cfg['save']['dir_path'])
+
+            cbs = [
+                tf.keras.callbacks.TensorBoard(
+                    log_dir=cfg['save']['dir_path'],
+                    write_graph=cfg['summary']['write_graph'],
+                    write_images=cfg['summary']['write_images'],
+                    update_freq=cfg['summary']['update_freq'],
+                    histogram_freq=cfg['summary']['histogram_freq']
+                )
+            ]
+
             epoch = 0
             history = model.fit(
                 train_dataset,
                 initial_epoch=epoch,
                 epochs=cfg['training']['epochs'],
                 verbose=cfg['training']['verbose'],
+                callbacks=cbs,
                 validation_data=val_dataset,
                 steps_per_epoch=math.ceil(cfg['dataset']['train']['count'] / cfg['training']['batch_size']),
                 validation_steps=cfg['validation']['steps'],
@@ -140,8 +156,6 @@ def main(argv):
             )
             print("test loss, test acc:", results)
 
-            if not os.path.exists(cfg['save']['dir_path']):
-                os.makedirs(cfg['save']['dir_path'])
             fname = os.path.join(cfg['save']['dir_path'],
                                  f'{cfg["save"]["basename"]}-{epoch:06d}.{"h5" if cfg["save"]["format"]=="h5" else ""}')
 

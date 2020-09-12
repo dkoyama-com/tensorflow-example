@@ -49,13 +49,19 @@ metrics:
 training:
   batch_size: 1
   epochs: 1
-  verbose: 2
+  verbose: 1
 
 validation:
   batch_size: 1
   steps: 16
   freq: 1
-  verbose: 2
+  verbose: 1
+
+summary:
+  write_graph: true
+  write_images: false
+  update_freq: 'epoch'
+  histogram_freq: 1
 
 save:
   format: "h5"
