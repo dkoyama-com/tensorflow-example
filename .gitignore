@@ -1,0 +1,6 @@
+.ssh/
+__pycache__/
+.vscode/
+out/
+*.png
+*.jpg
