@@ -1,0 +1,103 @@
+diff --git a/research/slim/datasets/dataset_utils.py b/research/slim/datasets/dataset_utils.py
+index 47e27d1..ca3279f 100644
+--- a/research/slim/datasets/dataset_utils.py
++++ b/research/slim/datasets/dataset_utils.py
+@@ -173,7 +173,7 @@ def write_label_file(labels_to_class_names,
+     filename: The filename where the class names are written.
+   """
+   labels_filename = os.path.join(dataset_dir, filename)
+-  with tf.gfile.Open(labels_filename, 'w') as f:
++  with tf.compat.v1.gfile.Open(labels_filename, 'w') as f:
+     for label in labels_to_class_names:
+       class_name = labels_to_class_names[label]
+       f.write('%d:%s\n' % (label, class_name))
+diff --git a/research/slim/datasets/download_and_convert_flowers.py b/research/slim/datasets/download_and_convert_flowers.py
+index 7976e38..2b873d4 100644
+--- a/research/slim/datasets/download_and_convert_flowers.py
++++ b/research/slim/datasets/download_and_convert_flowers.py
+@@ -54,7 +54,7 @@ class ImageReader(object):
+ 
+   def __init__(self):
+     # Initializes function that decodes RGB JPEG data.
+-    self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
++    self._decode_jpeg_data = tf.compat.v1.placeholder(dtype=tf.string)
+     self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=3)
+ 
+   def read_image_dims(self, sess, image_data):
+@@ -121,13 +121,13 @@ def _convert_dataset(split_name, filenames, class_names_to_ids, dataset_dir):
+   with tf.Graph().as_default():
+     image_reader = ImageReader()
+ 
+-    with tf.Session('') as sess:
++    with tf.compat.v1.Session('') as sess:
+ 
+       for shard_id in range(_NUM_SHARDS):
+         output_filename = _get_dataset_filename(
+             dataset_dir, split_name, shard_id)
+ 
+-        with tf.python_io.TFRecordWriter(output_filename) as tfrecord_writer:
++        with tf.compat.v1.python_io.TFRecordWriter(output_filename) as tfrecord_writer:
+           start_ndx = shard_id * num_per_shard
+           end_ndx = min((shard_id+1) * num_per_shard, len(filenames))
+           for i in range(start_ndx, end_ndx):
+@@ -136,7 +136,7 @@ def _convert_dataset(split_name, filenames, class_names_to_ids, dataset_dir):
+             sys.stdout.flush()
+ 
+             # Read the filename:
+-            image_data = tf.gfile.GFile(filenames[i], 'rb').read()
++            image_data = tf.compat.v1.gfile.GFile(filenames[i], 'rb').read()
+             height, width = image_reader.read_image_dims(sess, image_data)
+ 
+             class_name = os.path.basename(os.path.dirname(filenames[i]))
+@@ -158,10 +158,10 @@ def _clean_up_temporary_files(dataset_dir):
+   """
+   filename = _DATA_URL.split('/')[-1]
+   filepath = os.path.join(dataset_dir, filename)
+-  tf.gfile.Remove(filepath)
++  tf.compat.v1.gfile.Remove(filepath)
+ 
+   tmp_dir = os.path.join(dataset_dir, 'flower_photos')
+-  tf.gfile.DeleteRecursively(tmp_dir)
++  tf.compat.v1.gfile.DeleteRecursively(tmp_dir)
+ 
+ 
+ def _dataset_exists(dataset_dir):
+@@ -169,7 +169,7 @@ def _dataset_exists(dataset_dir):
+     for shard_id in range(_NUM_SHARDS):
+       output_filename = _get_dataset_filename(
+           dataset_dir, split_name, shard_id)
+-      if not tf.gfile.Exists(output_filename):
++      if not tf.compat.v1.gfile.Exists(output_filename):
+         return False
+   return True
+ 
+@@ -180,8 +180,8 @@ def run(dataset_dir):
+   Args:
+     dataset_dir: The dataset directory where the dataset is stored.
+   """
+-  if not tf.gfile.Exists(dataset_dir):
+-    tf.gfile.MakeDirs(dataset_dir)
++  if not tf.compat.v1.gfile.Exists(dataset_dir):
++    tf.compat.v1.gfile.MakeDirs(dataset_dir)
+ 
+   if _dataset_exists(dataset_dir):
+     print('Dataset files already exist. Exiting without re-creating them.')
+diff --git a/research/slim/download_and_convert_data.py b/research/slim/download_and_convert_data.py
+index e935780..af14208 100644
+--- a/research/slim/download_and_convert_data.py
++++ b/research/slim/download_and_convert_data.py
+@@ -59,12 +59,12 @@ tf.compat.v1.app.flags.DEFINE_string(
+     None,
+     'The directory where the output TFRecords and temporary files are saved.')
+ 
+-tf.flags.DEFINE_float(
++tf.compat.v1.app.flags.DEFINE_float(
+     'small_object_area_threshold', 0.005,
+     'For --dataset_name=visualwakewords only. Threshold of fraction of image '
+     'area below which small objects are filtered')
+ 
+-tf.flags.DEFINE_string(
++tf.compat.v1.app.flags.DEFINE_string(
+     'foreground_class_of_interest', 'person',
+     'For --dataset_name=visualwakewords only. Build a binary classifier based '
+     'on the presence or absence of this object in the image.')
