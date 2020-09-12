@@ -27,20 +27,22 @@ def main(argv):
                                                         cfg['dataset']['train']['batch_size'],
                                                         cfg['dataset']['height'], cfg['dataset']['width'],
                                                         cfg['dataset']['channel'],
-                                                        augmentations, seed)
+                                                        augmentations, seed,
+                                                        cfg['dataset']['mul'], cfg['dataset']['add'])
 
             augmentations = cfg['dataset']['validation']['augmentations'] if 'augmentations' in cfg['dataset']['validation'] else []
             val_dataset = dataset_factory.get_dataset(cfg['dataset']['dataset_dir'], cfg['dataset']['validation']['pattern'],
                                                       cfg['dataset']['validation']['batch_size'],
                                                       cfg['dataset']['height'], cfg['dataset']['width'],
                                                       cfg['dataset']['channel'],
-                                                      augmentations, seed)
+                                                      augmentations, seed,
+                                                      cfg['dataset']['mul'], cfg['dataset']['add'])
             for data in train_dataset.take(1):
                 print(data[0].shape)
                 print(data[0][0].shape)
                 img = data[0][0].numpy()
                 print(np.min(img), np.max(img))
-                plt.imsave('tmp.png', img)
+#               plt.imsave('tmp.png', img)
 
             tf.keras.backend.set_image_data_format('channels_last')
 
