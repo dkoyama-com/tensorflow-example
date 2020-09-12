@@ -22,20 +22,18 @@ def main(argv):
         with open(FLAGS.config) as ifp:
             cfg = yaml.safe_load(ifp)
 
-            channel_last = cfg['dataset']['channel_last'] if 'channel_last' in cfg['dataset'] else True
-
             augmentations = cfg['dataset']['train']['augmentations'] if 'augmentations' in cfg['dataset']['train'] else []
             train_dataset = dataset_factory.get_dataset(cfg['dataset']['dataset_dir'], cfg['dataset']['train']['pattern'],
                                                         cfg['dataset']['train']['batch_size'],
                                                         cfg['dataset']['height'], cfg['dataset']['width'],
-                                                        cfg['dataset']['channel'], channel_last,
+                                                        cfg['dataset']['channel'],
                                                         augmentations, seed)
 
             augmentations = cfg['dataset']['validation']['augmentations'] if 'augmentations' in cfg['dataset']['validation'] else []
             val_dataset = dataset_factory.get_dataset(cfg['dataset']['dataset_dir'], cfg['dataset']['validation']['pattern'],
                                                       cfg['dataset']['validation']['batch_size'],
                                                       cfg['dataset']['height'], cfg['dataset']['width'],
-                                                      cfg['dataset']['channel'], channel_last,
+                                                      cfg['dataset']['channel'],
                                                       augmentations, seed)
             for data in train_dataset.take(1):
                 print(data[0].shape)
@@ -44,10 +42,7 @@ def main(argv):
                 print(np.min(img), np.max(img))
                 plt.imsave('tmp.png', img)
 
-            if channel_last:
-                tf.keras.backend.set_image_data_format('channels_last')
-            else:
-                tf.keras.backend.set_image_data_format('channels_first')
+            tf.keras.backend.set_image_data_format('channels_last')
 
             return 0
 

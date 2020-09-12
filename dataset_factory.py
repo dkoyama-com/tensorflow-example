@@ -18,7 +18,7 @@ def _parse_function(example_proto):
 
 
 def _preprocess_image(decoded: tf.data.Dataset,
-                      input_height: int, input_width: int, channel: int, channel_last: bool,
+                      input_height: int, input_width: int, channel: int,
                       augmentations: List[Union[str, Dict[str, Any]]], seed: Union[int, None],
                       height: int, width: int) -> tf.data.Dataset:
     img = tf.reshape(decoded, tf.stack([input_height, input_width, channel]))
@@ -63,33 +63,34 @@ def _preprocess_image(decoded: tf.data.Dataset,
 
     img = tf.image.resize(img, [height, width])
     img = tf.clip_by_value(img, clip_value_min=0.0, clip_value_max=1.0)
+
     return img
 
 
 def _preprocess_jpeg(encoded: tf.data.Dataset,
-                     input_height: int, input_width: int, channel: int, channel_last: bool,
+                     input_height: int, input_width: int, channel: int,
                      augmentations: List[str], seed: Union[int, None],
                      height: int, width: int) -> tf.data.Dataset:
     decoded = tf.io.decode_jpeg(encoded, channel)
     return _preprocess_image(decoded,
-                             input_height, input_width, channel, channel_last,
+                             input_height, input_width, channel,
                              augmentations, seed, height, width)
 
 
 def _preprocess_png(encoded: tf.data.Dataset,
-                    input_height: int, input_width: int, channel: int, channel_last: bool,
+                    input_height: int, input_width: int, channel: int,
                     augmentations: List[str], seed: Union[int, None],
                     height: int, width: int) -> tf.data.Dataset:
     decoded = tf.io.decode_png(encoded, channel)
     return _preprocess_image(decoded,
-                             input_height, input_width, channel, channel_last,
+                             input_height, input_width, channel,
                              augmentations, seed, height, width)
 
 
 def get_dataset(dataset_dir: str, file_pattern: str = '*',
                 batch_size: int = 1,
                 height: Union[int, None] = None, width: Union[int, None] = None,
-                channel: int = 3, channel_last: bool = True,
+                channel: int = 3,
                 augmentations: List[Union[str, Dict[str, Any]]] = [], seed: Union[int, None] = None) -> tf.data.Dataset:
     """指定したディレクトリ内の TFRecord ファイルから Dataset を生成する
 
@@ -105,8 +106,6 @@ def get_dataset(dataset_dir: str, file_pattern: str = '*',
     :type width: Union[int, None], optional
     :param channel: 入力画像データのチャンネル数, defaults to 3
     :type channel: int, optional
-    :param channel_last: 画像の shape のチャンネルの位置, defaults to True
-    :type channel_last: bool, optional
     :param augmentations: Augumentation　の設定リスト, defaults to []
     :type augmentations: List[Union[str, Dict[str, Any]]], optional
     :param seed: 乱数のシード, defaults to 0
@@ -120,11 +119,11 @@ def get_dataset(dataset_dir: str, file_pattern: str = '*',
     dataset = dataset.map(_parse_function)
     dataset_jpeg = dataset.filter(lambda x: x['image/format'] == b'jpg')
     images_jpeg = dataset_jpeg.map(lambda x: _preprocess_jpeg(x['image/encoded'],
-                                                              x['image/height'], x['image/width'], channel, channel_last,
+                                                              x['image/height'], x['image/width'], channel,
                                                               augmentations, seed, height, width))
     dataset_png = dataset.filter(lambda x: x['image/format'] == b'png')
     images_png = dataset_png.map(lambda x: _preprocess_png(x['image/encoded'],
-                                                           x['image/height'], x['image/width'], channel, channel_last,
+                                                           x['image/height'], x['image/width'], channel,
                                                            augmentations, seed, height, width))
     images = tf.data.Dataset.concatenate(images_jpeg, images_png)
     images = images.batch(batch_size)
