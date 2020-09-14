@@ -1,7 +1,5 @@
-from os import write
 import tensorflow as tf
-from absl import app
-from absl import flags
+from absl import app, flags
 import os
 import yaml
 import sys
