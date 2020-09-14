@@ -123,8 +123,7 @@ def get_dataset(dataset_dir: str, file_pattern: str = '*',
     :return: 生成したデータセット
     :rtype: tf.data.Dataset
     """
-    files = glob.glob(os.path.join(dataset_dir, file_pattern))
-    dataset = tf.data.Dataset.from_tensor_slices(files)
+    dataset = tf.data.Dataset.list_files(file_pattern)
     dataset = dataset.interleave(lambda x: tf.data.TFRecordDataset(x))
     dataset = dataset.map(_parse_function)
     dataset_jpeg = dataset.filter(lambda x: x['image/format'] == b'jpg')
