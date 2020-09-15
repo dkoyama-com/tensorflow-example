@@ -12,6 +12,9 @@ flags.DEFINE_list('labels', None, 'list of class label')
 
 FLAGS = flags.FLAGS
 
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 
 def data_gen(itr):
     for x, y in itr:
