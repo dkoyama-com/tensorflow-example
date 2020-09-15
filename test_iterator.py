@@ -71,8 +71,28 @@ def main(argv):
     tf.keras.backend.set_image_data_format('channels_last')
     tf.keras.backend.set_learning_phase(1)
 
+    alpha = 1.0
+    depth_multiplier = 1
+    dropout = 0.001
+    num_class = len(ids)
+
     model = tf.keras.applications.MobileNet(input_shape=(224, 224, 3),
-                                            weights=None, classes=len(ids))
+                                            alpha=alpha, depth_multiplier=depth_multiplier,
+                                            include_top=False, pooling='avg',
+                                            weights='imagenet', classes=num_class)
+
+    inputs = model.get_layer('input_1').input
+    outputs = model.get_layer('global_average_pooling2d').output
+    outputs = tf.keras.layers.Reshape((1, 1, int(1024 * alpha)), name='reshape_1')(outputs)
+    outputs = tf.keras.layers.Dropout(dropout, name='dropout')(outputs)
+    outputs = tf.keras.layers.Conv2D(num_class, (1, 1), padding='same', name='conv_preds')(outputs)
+    outputs = tf.keras.layers.Reshape((num_class,), name='reshape_2')(outputs)
+    outputs = tf.keras.layers.Activation('softmax', name='act_softmax')(outputs)
+
+    model = tf.keras.Model(inputs, outputs, name='mobilenet_%0.2f_%s_%d' % (alpha, 224, num_class))
+
+    model.summary()
+
     optimizer = tf.keras.optimizers.Adam()
     loss = tf.keras.losses.SparseCategoricalCrossentropy()
     metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
