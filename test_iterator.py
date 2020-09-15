@@ -64,9 +64,9 @@ def main(argv):
 
     print(labels_map)
 
-    for i, data in enumerate(itr_train[0][0]):
-        print(f'tmp{i:04d}.png')
-        plt.imsave(f'tmp{i:04d}.png', data/255)
+#   for i, data in enumerate(itr_train[0][0]):
+#       print(f'tmp{i:04d}.png')
+#       plt.imsave(f'tmp{i:04d}.png', data/255)
 
     tf.keras.backend.set_image_data_format('channels_last')
     tf.keras.backend.set_learning_phase(1)
@@ -94,8 +94,8 @@ def main(argv):
     model.summary()
 
     optimizer = tf.keras.optimizers.Adam()
-    loss = tf.keras.losses.SparseCategoricalCrossentropy()
-    metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
+    loss = tf.keras.losses.CategoricalCrossentropy()
+    metrics = [tf.keras.metrics.CategoricalAccuracy()]
 
     model.compile(
         optimizer=optimizer,
@@ -106,15 +106,17 @@ def main(argv):
     print(itr_train[0][0].shape, itr_train[0][1].shape)
 
     history = model.fit(
-        data_gen(itr_train),
-        epochs=1,
+        itr_train,
+        epochs=30,
         verbose=1,
         steps_per_epoch=math.ceil(itr_train.samples/itr_train.batch_size),
-        validation_data=data_gen(itr_val),
+        validation_data=itr_val,
         validation_steps=math.ceil(itr_val.samples/itr_val.batch_size)
     )
 
     print(history.history)
+
+    model.save('model.h5', save_format='h5')
 
     return 0
 
