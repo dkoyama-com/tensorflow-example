@@ -2,6 +2,7 @@ import tensorflow as tf
 from absl import app, flags
 import math
 import os
+from pathlib import Path
 import matplotlib.pyplot as plt
 
 
@@ -44,7 +45,13 @@ def main(argv):
         classes=FLAGS.labels
     )
 
-    labels = [os.path.basename(os.path.dirname(x)) for x in itr_train.filepaths]
+    def get_1st_dir(root, path):
+        root = Path(root)
+        path = Path(path)
+        rel_path = path.relative_to(root)
+        return str(rel_path).split(os.path.sep)[0]
+
+    labels = [get_1st_dir(FLAGS.image_dir, x) for x in itr_train.filepaths]
     labels = sorted(set(labels), key=labels.index)
     ids = sorted(set(itr_train.labels), key=list(itr_train.labels).index)
 
